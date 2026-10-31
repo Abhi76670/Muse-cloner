@@ -1,14 +1,5 @@
 name: Build Virtual Space APK
 
-# Manual workflow: Actions tab -> "Build Virtual Space APK" -> Run workflow
-#
-# Ye ek open-source virtual engine (BlackBox fork, Apache-2.0) ka apna app banata hai.
-# Isme har "space" alag clone hota hai, aur ek hi app ke 20 clone ban sakte hain.
-#
-# Repo Settings -> Secrets and variables -> Actions -> Variables me ye set kar sakte ho:
-#   ENGINE_REPO : owner/repo   (default: CKAndroidProject/NewBlackbox)
-#   ENGINE_REF  : commit SHA / tag (SHA pin karna safe hai, nahi to default branch ka latest code build hota hai)
-
 on:
   workflow_dispatch:
 
@@ -33,6 +24,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: ''
 
       - name: Install SDK, NDK and CMake
         run: sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "ndk;25.1.8937393" "cmake;3.22.1"
