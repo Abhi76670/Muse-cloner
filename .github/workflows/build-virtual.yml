@@ -30,6 +30,105 @@ jobs:
       - name: Install SDK, NDK and CMake
         run: sdkmanager --install "platforms;android-33" "build-tools;33.0.0" "ndk;25.1.8937393" "cmake;3.22.1"
 
+      - name: Replace dead jcenter libraries
+        run: |
+          set -e
+          cd engine/app
+          sed -i '/com.github.nukc.stateview/d;/com.roger.catloadinglibrary/d;/com.imuxuan:floatingview/d' build.gradle
+
+          mkdir -p src/main/java/com/github/nukc/stateview
+          mkdir -p src/main/java/com/roger/catloadinglibrary
+          mkdir -p src/main/java/com/imuxuan/floatingview
+
+          cat > src/main/java/com/github/nukc/stateview/StateView.java <<'EOF'
+          package com.github.nukc.stateview;
+
+          import android.content.Context;
+          import android.util.AttributeSet;
+          import android.view.Gravity;
+          import android.widget.FrameLayout;
+          import android.widget.TextView;
+
+          public class StateView extends FrameLayout {
+              private final TextView label;
+
+              public StateView(Context context) {
+                  this(context, null);
+              }
+
+              public StateView(Context context, AttributeSet attrs) {
+                  this(context, attrs, 0);
+              }
+
+              public StateView(Context context, AttributeSet attrs, int defStyleAttr) {
+                  super(context, attrs, defStyleAttr);
+                  label = new TextView(context);
+                  label.setGravity(Gravity.CENTER);
+                  addView(label, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                  setVisibility(GONE);
+              }
+
+              public void showContent() {
+                  setVisibility(GONE);
+              }
+
+              public void showEmpty() {
+                  label.setText("Koi app nahi hai");
+                  setVisibility(VISIBLE);
+              }
+
+              public void showLoading() {
+                  label.setText("Loading...");
+                  setVisibility(VISIBLE);
+              }
+          }
+          EOF
+
+          cat > src/main/java/com/roger/catloadinglibrary/CatLoadingView.java <<'EOF'
+          package com.roger.catloadinglibrary;
+
+          import android.app.Dialog;
+          import android.os.Bundle;
+          import android.widget.ProgressBar;
+
+          import androidx.annotation.NonNull;
+          import androidx.fragment.app.DialogFragment;
+
+          public class CatLoadingView extends DialogFragment {
+
+              public void setBackgroundColor(int color) {
+              }
+
+              public void setClickCancelAble(boolean cancelable) {
+                  setCancelable(cancelable);
+              }
+
+              @NonNull
+              @Override
+              public Dialog onCreateDialog(Bundle savedInstanceState) {
+                  Dialog dialog = new Dialog(requireContext());
+                  dialog.setContentView(new ProgressBar(requireContext()));
+                  if (dialog.getWindow() != null) {
+                      dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+                  }
+                  return dialog;
+              }
+          }
+          EOF
+
+          cat > src/main/java/com/imuxuan/floatingview/FloatingMagnetView.java <<'EOF'
+          package com.imuxuan.floatingview;
+
+          import android.content.Context;
+          import android.widget.FrameLayout;
+
+          public class FloatingMagnetView extends FrameLayout {
+              public FloatingMagnetView(Context context) {
+                  super(context);
+              }
+          }
+          EOF
+
       - name: Build debug APK
         working-directory: engine
         run: |
